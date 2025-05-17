@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
@@ -158,12 +157,10 @@ const JoggingDetailPage: React.FC = () => {
         <CardContent className="p-0 h-[400px]">
           {locations.length > 0 ? (
             <MapContainer
-              center={[locations[0].latitude, locations[0].longitude]}
-              zoom={15}
               style={{ height: '100%', width: '100%' }}
+              zoom={15}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               {renderRouteSegments()}

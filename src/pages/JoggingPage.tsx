@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Circle, useMap, useMapEvents } from 'react-leaflet';
@@ -297,12 +296,10 @@ const JoggingPage: React.FC = () => {
       <div className="flex-grow relative">
         {currentLocation ? (
           <MapContainer
-            center={[currentLocation.latitude, currentLocation.longitude]}
-            zoom={16}
             style={{ height: '100%', width: '100%' }}
+            zoom={16}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
 
@@ -316,8 +313,8 @@ const JoggingPage: React.FC = () => {
             {currentLocation && (
               <Circle
                 center={[currentLocation.latitude, currentLocation.longitude]}
-                radius={5}
                 pathOptions={{ fillColor: '#0066cc', color: '#ffffff', weight: 2, fillOpacity: 1 }}
+                radius={5}
               />
             )}
 
