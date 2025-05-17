@@ -1,68 +1,46 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import * as SQLite from 'expo-sqlite';
+import React, { createContext, useContext } from 'react';
+import Dexie from 'dexie';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { JoggingSession, LocationPoint } from '../types';
+
+// Create a Dexie database
+class JoggingDatabase extends Dexie {
+  joggingSessions!: Dexie.Table<JoggingSession, number>;
+  locationPoints!: Dexie.Table<LocationPoint, number>;
+
+  constructor() {
+    super('joggingTracker');
+    this.version(1).stores({
+      joggingSessions: '++id, startTime, endTime',
+      locationPoints: '++id, sessionId, timestamp'
+    });
+  }
+}
+
+const db = new JoggingDatabase();
 
 interface DatabaseContextType {
-  db: SQLite.SQLiteDatabase | null;
+  db: JoggingDatabase;
   isLoading: boolean;
 }
 
 const DatabaseContext = createContext<DatabaseContextType>({
-  db: null,
-  isLoading: true,
+  db,
+  isLoading: false
 });
 
 export const useDatabase = () => useContext(DatabaseContext);
 
 export const DatabaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [db, setDb] = useState<SQLite.SQLiteDatabase | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Open the database
-    const database = SQLite.openDatabase('jogging.db');
-    
-    // Create tables if they don't exist
-    database.transaction(tx => {
-      // Create jogging sessions table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS jogging_sessions (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          start_time INTEGER NOT NULL,
-          end_time INTEGER,
-          total_distance REAL,
-          average_speed REAL,
-          max_speed REAL,
-          duration INTEGER
-        );`
-      );
-      
-      // Create location points table
-      tx.executeSql(
-        `CREATE TABLE IF NOT EXISTS location_points (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          session_id INTEGER,
-          latitude REAL NOT NULL,
-          longitude REAL NOT NULL,
-          timestamp INTEGER NOT NULL,
-          speed REAL,
-          FOREIGN KEY (session_id) REFERENCES jogging_sessions (id) ON DELETE CASCADE
-        );`
-      );
-    }, 
-    error => {
-      console.error('Database setup error:', error);
-    },
-    () => {
-      setDb(database);
-      setIsLoading(false);
-    });
-    
-  }, []);
+  // We'll use a simple query to check if the database is ready
+  const isReady = useLiveQuery(() => db.joggingSessions.count().then(() => true).catch(() => false), [], false);
 
   return (
-    <DatabaseContext.Provider value={{ db, isLoading }}>
+    <DatabaseContext.Provider value={{ db, isLoading: !isReady }}>
       {children}
     </DatabaseContext.Provider>
   );
 };
+
+export default db;
